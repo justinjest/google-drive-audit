@@ -27,10 +27,9 @@ def main():
     with open("token.json", "w") as token:
         token.write(creds.to_json())
 
-    service = build("driveactivity", "v2", credentials=creds)
-
     # Calling api here
     try:
+        files = []
         service = build("drive", "v3", credentials=creds)
 
         # Call the Drive v3 API
@@ -46,11 +45,20 @@ def main():
             return
         print("Files:")
         for item in items:
+            files.append(item['id'])
             print(f"{item['name']} ({item['id']})")
+
+        for file in files:
+            print (results.get(file, []))
+
     except HttpError as error:
         # TODO(developer) - Handle errors from drive API.
         print(f"An error occurred: {error}")
 
+# File -> Permision JSON
+def getPermissions(file):
+    result = file.list("permissions(id)")
+    return result
 
 if __name__ == "__main__":
     print ("Hello world")
