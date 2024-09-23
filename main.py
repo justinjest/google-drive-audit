@@ -21,7 +21,7 @@ def main():
         print ("Starting to scan files")
         results = (
             service.files()
-            .list(pageSize=10, fields="nextPageToken, files(id, name)")
+            .list(fields="files(id, name)")
             .execute()
     )
         items = results.get("files", [])
