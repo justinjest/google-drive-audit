@@ -65,9 +65,8 @@ def validate_creds():
     # Save credentials
     with open("token.json", "w") as token:
         token.write(creds.to_json())
-    return (token)
     print ("Logged in, accessing API")
-
+    return creds
 
 # File -> Permision JSON
 def get_file_roles(file_id, creds):
