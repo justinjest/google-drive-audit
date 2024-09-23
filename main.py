@@ -10,23 +10,7 @@ SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
 
 
 def main():
-    creds = None
-    print ("Conncecting to google drive")
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "api_keys/credentials.json", SCOPES
-            )
-            creds = flow.run_local_server(port=0)
-    # Save credentials
-    with open("token.json", "w") as token:
-        token.write(creds.to_json())
-    print ("Logged in, accessing API")
+    creds = validate_creds()
     # Calling api here
     try:
         files = []
@@ -57,11 +41,32 @@ def main():
                 if {item['id']} == {'anyoneWithLink'}:
                     risk_detection.append(file[0])
         print ("Following files have an outstanding vulnerability")
-        print (risk_detection)
+        print(risk_detection)
+        output_results (risk_detection)
     except HttpError as error:
         # TODO(developer) - Handle errors from drive API.
         print(f"An error occurred: {error}")
 # Authenticate and create the Drive API client
+
+def validate_creds():
+    creds = None
+    print ("Conncecting to google drive")
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                "api_keys/credentials.json", SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+    # Save credentials
+    with open("token.json", "w") as token:
+        token.write(creds.to_json())
+    return (token)
+    print ("Logged in, accessing API")
 
 
 # File -> Permision JSON
@@ -83,6 +88,14 @@ def get_file_roles(file_id, creds):
     except:
         return []
 
+def output_results(results):
+    output_path = "results/output.txt"
+    if not os.path.exists(output_path):
+        with open (output_path, "x") as txt:
+            txt.write("")
+        print ("File created")
+    with open(output_path, "w") as txt:
+        txt.write("\n".join(results))
+
 if __name__ == "__main__":
-    print ("Hello world")
     main()
