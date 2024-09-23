@@ -29,10 +29,8 @@ def main():
         if not items:
             print("No files found.")
             return
-        print("Files:")
         for item in items:
             files.append((item['name'], item['id']))
-            print(f"{item['name']} ({item['id']})")
         print ("Found all items")
         print ("Scanning for shared links")
         for file in files:
@@ -46,7 +44,7 @@ def main():
     except HttpError as error:
         # TODO(developer) - Handle errors from drive API.
         print(f"An error occurred: {error}")
-# Authenticate and create the Drive API client
+
 
 def validate_creds():
     creds = None
@@ -73,7 +71,6 @@ def get_file_roles(file_id, creds):
     try:
         service = build('drive', 'v3', credentials = creds)
         permissions = service.permissions().list(fileId=file_id).execute()
-        
         roles = []
         for permission in permissions.get('permissions', []):
             roles.append({
