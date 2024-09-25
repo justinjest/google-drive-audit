@@ -13,33 +13,7 @@ def main():
     creds = validate_creds()
     # Calling api here
     try:
-        files = []
-        risk_detection = []
-        service = build("drive", "v3", credentials=creds)
-
-        # Call the Drive v3 API
-        print ("Starting to scan files")
-        results = (
-            service.files()
-            .list(fields="files(id, name)")
-            .execute()
-    )
-        items = results.get("files", [])
-
-        if not items:
-            print("No files found.")
-            return
-        for item in items:
-            files.append((item['name'], item['id']))
-        print ("Found all items")
-        print ("Scanning for shared links")
-        for file in files:
-            file_roles = get_file_roles(file[1], creds)
-            for item in file_roles:
-                if {item['id']} == {'anyoneWithLink'}:
-                    risk_detection.append(file[0])
-        print ("Following files have an outstanding vulnerability")
-        print(risk_detection)
+        risk_detection = load_files(creds)
         output_results (risk_detection)
     except HttpError as error:
         # TODO(developer) - Handle errors from drive API.
@@ -66,6 +40,36 @@ def validate_creds():
     print ("Logged in, accessing API")
     return creds
 
+def load_files(creds):
+    files = []
+    risk_detection = []
+    service = build("drive", "v3", credentials=creds)
+
+    # Call the Drive v3 API
+    print ("Starting to scan files")
+    results = (
+        service.files()
+        .list(fields="files(id, name)")
+        .execute()
+)
+    items = results.get("files", [])
+
+    if not items:
+        print("No files found.")
+        return
+    for item in items:
+        files.append((item['name'], item['id']))
+    print ("Found all items")
+    print ("Scanning for shared links")
+    for file in files:
+        file_roles = get_file_roles(file[1], creds)
+        for item in file_roles:
+            if {item['id']} == {'anyoneWithLink'}:
+                risk_detection.append(file[0])
+    print ("Following files have an outstanding vulnerability")
+    return risk_detection
+
+
 # File -> Permision JSON
 def get_file_roles(file_id, creds):
     try:
@@ -87,9 +91,9 @@ def get_file_roles(file_id, creds):
 def output_results(results):
     output_path = "results/output.txt"
     if not os.path.exists(output_path):
-        with open (output_path, "x") as txt:
-            txt.write("")
-        print ("File created")
+        if not os.path.exists("results"):
+            os.makedirs("results")
+        open(output_path, 'w').close()
     with open(output_path, "w") as txt:
         txt.write("\n".join(results))
 
